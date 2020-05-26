@@ -69,11 +69,11 @@ Full list of options in `config.json`:
 | port                                | Integer | Yes        | PostgreSQL port                                               |
 | user                                | String  | Yes        | PostgreSQL user                                               |
 | password                            | String  | Yes*       | PostgreSQL password. Required unless `sslkey` specified.                                           |
-| sslkey                              | String  | Yes*        | PostgreSQL sslkey. Required unless `password` specified.                                      |
+| sslkey                              | String  | Yes*       | PostgreSQL sslkey. Required unless `password` specified.                                      |
 | dbname                              | String  | Yes        | PostgreSQL database name                                      |
-| sslmode                              | String  | No        | PostgreSQL sslmode                                      |
-| sslrootcert                              | String  | No        | PostgreSQL sslrootcert                                      |
-| sslcert                              | String  | No        | PostgreSQL sslcert                                      |
+| sslmode                             | String  |            | PostgreSQL sslmode                                      |
+| sslrootcert                         | String  |            | PostgreSQL sslrootcert                                      |
+| sslcert                             | String  |            | PostgreSQL sslcert                                      |
 | batch_size_rows                     | Integer |            | (Default: 100000) Maximum number of rows in each batch. At the end of each batch, the rows in the batch are loaded into Postgres. |
 | flush_all_streams                   | Boolean |            | (Default: False) Flush and load every stream into Postgres when one batch is full. Warning: This may trigger the COPY command to use files with low number of records. |
 | parallelism                         | Integer |            | (Default: 0) The number of threads used to flush tables. 0 will create a thread for each stream, up to parallelism_max. -1 will create a thread for each CPU core. Any other positive number will create that number of threads, up to parallelism_max. |
