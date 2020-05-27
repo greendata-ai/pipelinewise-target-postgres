@@ -8,6 +8,7 @@ import re
 import uuid
 import itertools
 import time
+import sshtunnel
 from singer import get_logger
 
 
@@ -18,6 +19,7 @@ def validate_config(config):
         'host',
         'port',
         'user',
+        'password',
         'dbname'
     ]
 
@@ -25,10 +27,6 @@ def validate_config(config):
     for k in required_config_keys:
         if not config.get(k, None):
             errors.append("Required key is missing from config: [{}]".format(k))
-    
-    # Check for password OR sslkey
-    if not (config.get('password', None) or config.get('sslkey', None)):
-        errors.append("Config requires one of: [password, sslkey]")
 
     # Check target schema config
     config_default_target_schema = config.get('default_target_schema', None)
@@ -294,14 +292,15 @@ class DbSync:
                                                  max_level=self.data_flattening_max_level)
 
     def open_connection(self):
-        conn_string = "host='{}' dbname='{}' user='{}' port='{}'".format(
+        conn_string = "host='{}' dbname='{}' user='{}' password='{}' port='{}'".format(
             self.connection_config['host'],
             self.connection_config['dbname'],
             self.connection_config['user'],
+            self.connection_config['password'],
             self.connection_config['port']
         )
 
-        for k in ('password', 'sslmode', 'sslcert', 'sslkey', 'sslrootcert'):
+        for k in ('sslmode', 'sslcert', 'sslkey', 'sslrootcert'):
             if k in self.connection_config.keys():
                 conn_string += " {}='{}'".format(
                     k,
