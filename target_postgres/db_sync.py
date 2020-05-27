@@ -8,7 +8,6 @@ import re
 import uuid
 import itertools
 import time
-import sshtunnel
 from singer import get_logger
 
 
