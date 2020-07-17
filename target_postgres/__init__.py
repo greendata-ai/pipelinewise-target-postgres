@@ -291,7 +291,8 @@ def flush_streams(
             row_count=row_count,
             db_sync=stream_to_sync[stream],
             delete_rows=config.get('hard_delete'),
-            temp_dir=config.get('temp_dir')
+            temp_dir=config.get('temp_dir'),
+            replace_table=config.get('replace_table')
         ) for stream in streams_to_flush)
 
     # reset flushed stream records to empty to avoid flushing same records
@@ -317,12 +318,12 @@ def flush_streams(
 
 
 # pylint: disable=too-many-arguments
-def load_stream_batch(stream, records_to_load, row_count, db_sync, delete_rows=False, temp_dir=None):
+def load_stream_batch(stream, records_to_load, row_count, db_sync, delete_rows=False, temp_dir=None, replace_table=False):
     """Load a batch of records and do post load operations, like creating
     or deleting rows"""
     # Load into Postgres
     if row_count[stream] > 0:
-        flush_records(stream, records_to_load, row_count[stream], db_sync, temp_dir)
+        flush_records(stream, records_to_load, row_count[stream], db_sync, temp_dir, replace_table)
 
     # Load finished, create indices if required
     db_sync.create_indices(stream)
@@ -336,7 +337,7 @@ def load_stream_batch(stream, records_to_load, row_count, db_sync, delete_rows=F
 
 
 # pylint: disable=unused-argument
-def flush_records(stream, records_to_load, row_count, db_sync, temp_dir=None):
+def flush_records(stream, records_to_load, row_count, db_sync, temp_dir=None, replace_table=False):
     """Take a list of records and load into database"""
     if temp_dir:
         temp_dir = os.path.expanduser(temp_dir)
@@ -350,7 +351,7 @@ def flush_records(stream, records_to_load, row_count, db_sync, temp_dir=None):
             f.write(bytes(csv_line + '\n', 'UTF-8'))
 
     size_bytes = os.path.getsize(csv_file)
-    db_sync.load_csv(csv_file, row_count, size_bytes)
+    db_sync.load_csv(csv_file, row_count, size_bytes, replace_table)
 
     # Delete temp file
     os.remove(csv_file)
@@ -368,6 +369,8 @@ def main():
     else:
         config = {}
 
+    if config.get('replace_table'):
+        LOGGER.info('replace_table specified; existing records will be dropped.')
     # Consume singer messages
     singer_messages = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
     persist_lines(config, singer_messages)

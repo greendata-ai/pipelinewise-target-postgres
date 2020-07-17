@@ -358,7 +358,7 @@ class DbSync:
             ]
         )
 
-    def load_csv(self, file, count, size_bytes):
+    def load_csv(self, file, count, size_bytes, replace_table=False):
         stream_schema_message = self.stream_schema_message
         stream = stream_schema_message['stream']
         self.logger.info("Loading %d rows into '%s'", count, self.table_name(stream, False))
@@ -378,6 +378,10 @@ class DbSync:
                 self.logger.debug(copy_sql)
                 with open(file, "rb") as f:
                     cur.copy_expert(copy_sql, f)
+                if replace_table:
+                    cur.execute("TRUNCATE {} CASCADE".format(
+                        self.table_name(stream_schema_message['stream'])
+                    ))
                 if len(self.stream_schema_message['key_properties']) > 0:
                     cur.execute(self.update_from_temp_table(temp_table))
                     updates = cur.rowcount
